@@ -3,7 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
+from launch.actions import TimerAction, ExecuteProcess # DeclareLaunchArgument, SetEnvironmentVariable
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 import launch_ros.actions
@@ -15,12 +15,27 @@ def generate_launch_description():
     # Get the launch directory
     nav2_yaml = os.path.join(get_package_share_directory('fastbot_slam'), 'config', 'nav2.yaml')
     rviz_config_dir = os.path.join(get_package_share_directory('fastbot_slam'), 'rviz', 'fastbot_map.rviz')
-    map_file = os.path.join(get_package_share_directory('fastbot_slam'), 'maps', 'fastbot_map.yaml')
+    map_file = os.path.join(get_package_share_directory('fastbot_slam'), 'config', 'fastbot_map.yaml')
     bt_nav_yaml = os.path.join(get_package_share_directory('fastbot_slam'), 'config', 'bt_navigator.yaml')
     controller_yaml = os.path.join(get_package_share_directory('fastbot_slam'), 'config', 'controller.yaml')
     recovery_yaml = os.path.join(get_package_share_directory('fastbot_slam'), 'config', 'recovery.yaml')
     planner_yaml = os.path.join(get_package_share_directory('fastbot_slam'), 'config', 'planner_server.yaml')
-   
+
+    # Timer to call global localization after AMCL is active
+    global_localization = TimerAction(
+        period=5.0,  # Wait 5 seconds for AMCL to activate
+        actions=[
+            ExecuteProcess(
+                cmd=[
+                    'ros2', 'service', 'call',
+                    '/reinitialize_global_localization',
+                    'std_srvs/srv/Empty', '{}'
+                ],
+                output='screen'
+            )
+        ]
+    )
+
     return LaunchDescription([
         
         Node(
@@ -38,20 +53,22 @@ def generate_launch_description():
             output='screen',
             parameters=[nav2_yaml]),
 
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['-d', rviz_config_dir],
-            parameters=[{'use_sim_time': True}],
-            output='screen'),
+        #Node(
+        #    package='rviz2',
+        #    executable='rviz2',
+        #    name='rviz2',
+        #    arguments=['-d', rviz_config_dir],
+        #    parameters=[{'use_sim_time': True}],
+        #    output='screen'),
 
         Node(
             package='nav2_controller',
             executable='controller_server',
             name='controller_server',
             output='screen',
-            parameters=[controller_yaml]),
+            parameters=[controller_yaml],
+            remappings=[('/cmd_vel', '/fastbot_1/cmd_vel'),
+                        ('/odom', '/fastbot_1/odom')]),
 
         Node(
             package='nav2_planner',
@@ -65,7 +82,9 @@ def generate_launch_description():
             executable='behavior_server',
             name='behavior_server',
             output='screen',
-            parameters=[recovery_yaml]),
+            parameters=[recovery_yaml],
+            remappings=[('/cmd_vel', '/fastbot_1/cmd_vel'),
+                        ('/odom', '/fastbot_1/odom')]),
 
         Node(
             package='nav2_bt_navigator',
@@ -86,5 +105,8 @@ def generate_launch_description():
                                         'controller_server',
                                         'planner_server',
                                         'behavior_server',
-                                        'bt_navigator']}])
+                                        'bt_navigator']}]),
+        global_localization
+
+                                    
     ])

@@ -7,7 +7,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     map_file = os.path.join(get_package_share_directory(
-        'fastbot_slam'), 'maps', 'cozy_room.yaml')
+        'fastbot_slam'), 'config', 'fastbot_map.yaml')
 
     return LaunchDescription([
         Node(

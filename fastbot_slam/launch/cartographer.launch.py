@@ -20,8 +20,8 @@ def generate_launch_description():
             parameters=[{'use_sim_time': True}],
             arguments=['-configuration_directory', cartographer_config_dir,
                        '-configuration_basename', configuration_basename],
-            remappings=[('/scan', '/fastbot/scan'),
-                        ('/odom', '/fastbot/odom')]
+            remappings=[('/scan', '/fastbot_1/scan'),
+                        ('/odom', '/fastbot_1/odom')]
         ),
 
         Node(
