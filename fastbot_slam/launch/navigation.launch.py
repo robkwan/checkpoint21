@@ -36,6 +36,18 @@ def generate_launch_description():
         ]
     )
 
+    initial_motion = TimerAction(
+        period=6.0,
+        actions=[
+            Node(
+                package='fastbot_slam',
+                executable='initial_twist_publisher',
+                name='initial_twist_publisher',
+                output='screen'
+            )
+        ]
+    )
+    
     return LaunchDescription([
         
         Node(
@@ -106,7 +118,8 @@ def generate_launch_description():
                                         'planner_server',
                                         'behavior_server',
                                         'bt_navigator']}]),
-        global_localization
+        global_localization,
+        initial_motion
 
                                     
     ])

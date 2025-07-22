@@ -26,6 +26,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+             'initial_twist_publisher = fastbot_slam.initial_twist_publisher:main',
         ],
     },
 )
