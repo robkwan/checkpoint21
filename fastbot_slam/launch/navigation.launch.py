@@ -53,13 +53,13 @@ def generate_launch_description():
             output='screen',
             parameters=[nav2_yaml]),
 
-        #Node(
-        #    package='rviz2',
-        #    executable='rviz2',
-        #    name='rviz2',
-        #    arguments=['-d', rviz_config_dir],
-        #    parameters=[{'use_sim_time': True}],
-        #    output='screen'),
+        Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', rviz_config_dir],
+            parameters=[{'use_sim_time': True}],
+            output='screen'),
 
         Node(
             package='nav2_controller',
