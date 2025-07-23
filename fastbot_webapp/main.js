@@ -14,6 +14,16 @@ var app = new Vue({
         urdfClient: null,
         position: { x: 0, y: 0, z: 0 },
         currentSpeed: 0,
+        isAutonomous: false, // false = joystick mode, true = goal_pose nav mode
+        cur_lin_x: 0,
+        cur_ang_z: 0,
+        lastPosition: null,
+        lastYaw: null,
+        lastTime: null,
+        estimatedSpeed: {
+            x: 0,
+            z: 0,
+        },
         dragging: false,
         x: 'no',
         y: 'no',
@@ -208,13 +218,43 @@ var app = new Vue({
             let topic = new ROSLIB.Topic({
                 ros: this.ros,
                 name: '/fastbot_1/odom',
-                messageType: 'nav_msgs/Odometry'
+                messageType: 'nav_msgs/msg/Odometry'
             });
             topic.subscribe((message) => {
+                const now = Date.now(); // milliseconds
                 this.pose = message.pose.pose;
                 this.position = message.pose.pose.position;
-                this.currentSpeed = Math.sqrt(Math.pow(message.twist.twist.linear.x, 2) + Math.pow(message.twist.twist.linear.y, 2));
-            
+                const quat = message.pose.pose.orientation;
+
+                // Convert quaternion to yaw (Z-axis rotation)
+                const siny_cosp = 2 * (quat.w * quat.z + quat.x * quat.y);
+                const cosy_cosp = 1 - 2 * (quat.y * quat.y + quat.z * quat.z);
+                const yaw = Math.atan2(siny_cosp, cosy_cosp);  // in radians
+
+                //this.currentSpeed = Math.sqrt(Math.pow(message.twist.twist.linear.x, 2) + Math.pow(message.twist.twist.linear.y, 2));
+                //this.cur_lin_x = message.twist.twist.linear.x;
+                //this.cur_ang_z = message.twist.twist.angular.z;
+                if (this.lastPosition && this.lastTime) {
+                    const dx = this.position.x - this.lastPosition.x;
+                    const dy = this.position.y - this.lastPosition.y;
+                
+                    let dyaw = yaw - this.lastYaw;
+      
+                    // Normalize to [-PI, PI]
+                    if (dyaw > Math.PI) dyaw -= 2 * Math.PI;
+                    if (dyaw < -Math.PI) dyaw += 2 * Math.PI;
+
+                    const dt = (now - this.lastTime) / 1000.0; // seconds
+                    if (dt > 0) {
+                        this.estimatedSpeed.x = Math.sqrt(dx * dx + dy * dy) / dt;
+                        this.estimatedSpeed.z = dyaw / dt;  // rad/s
+                    }
+                }
+
+            this.lastPosition = { x: this.position.x, y: this.position.y };
+            this.lastYaw = yaw;
+            this.lastTime = now;
+
             // Update 3D model position based on odometry data
             this.update3DModelPosition(this.pose);
             
@@ -239,6 +279,7 @@ var app = new Vue({
         startDrag() {
             this.dragging = true
             this.x = this.y = 0
+            this.controller_status = ''
         },
         stopDrag() {
             this.dragging = false
@@ -299,9 +340,9 @@ var app = new Vue({
         goToWaypoint(waypoint) {
             let waypointPos = { x: 0, y: 0 }; // Define waypoints here
             switch (waypoint) {
-                case 1: waypointPos = { x: -2.82, y: 1.20 }; break;
-                case 2: waypointPos = { x: 2.16, y: 1.68 }; break;
-                case 3: waypointPos = { x: -0.76, y: -2.30 }; break;
+                case 1: waypointPos = { x: 4.27, y: 1.94 }; break;
+                case 2: waypointPos = { x: -0.69, y: 1.87 }; break;
+                case 3: waypointPos = { x: 1.99, y: 5.71 }; break;
             }
             let topic = new ROSLIB.Topic({
                 ros: this.ros,
@@ -318,6 +359,7 @@ var app = new Vue({
                 }
             });
             topic.publish(message);
+            this.isAutonomous = true;
         },
         subscribeToControllerStatus() {
             const transitionTopic = new ROSLIB.Topic({
@@ -356,6 +398,7 @@ var app = new Vue({
 
                     if (msg.msg.includes('Reached') || msg.msg.includes('SUCCEEDED')) {
                         this.reached = true;
+                        this.isAutonomous = false;
                     } else if (msg.msg.includes('Aborted') || msg.msg.includes('FAILED')) {
                         this.reached = false;
                     }

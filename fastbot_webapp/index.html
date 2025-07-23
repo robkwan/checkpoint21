@@ -109,7 +109,14 @@
                         <br />
                         <p>Horizontal: {{ joystick.horizontal.toFixed(3) }}</p>-->
                         <h5>Current Speed</h5>
-                        <p>{{ currentSpeed }} m/s</p>
+                        <div v-if="isAutonomous">
+                            <p>linear.x: {{ estimatedSpeed.x.toFixed(2) }} m/s</p>
+                            <p>angular.z: {{ estimatedSpeed.z.toFixed(2) }} r/s</p>
+                        </div>
+                        <div v-else>
+                            <p>linear.x: {{ joystick.vertical.toFixed(2) }} m/s</p>
+                            <p>angular.z: {{ -joystick.horizontal.toFixed(2) }} r/s</p>
+                        </div>
                         <h5>Current Position</h5>
                         <p>X: {{ position.x.toFixed(2) }}</p>
                         <p>Y: {{ position.y.toFixed(2) }}</p>

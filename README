@@ -1,0 +1,32 @@
+To start the web application for this checkpoint 21:
+
+1. cd ~/ros2_ws/src/checkpoint21/fastbot_webapp
+python3 -m http.server 7000
+
+Then, execute the followings in each separate terminal:
+
+2. ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+
+3. ros2 run web_video_server web_video_server --ros-args -p port:=11315
+
+4. ros2 run tf2_web_republisher_py tf2_web_republisher
+
+5. ros2 launch fastbot_slam navigation.launch.py
+
+Then find out the webpage address in another terminal with:
+
+webpage_address
+
+and use the output into a browser to display.
+
+Then, to connect with the correct rosbridge server's address with
+
+rosbridge_address
+
+Known Limitations:-
+
+1. The pre-saved map is not yet post-processed with keep-out zones 
+    and so the obstacle avoidance may be challenging sometimes.
+2. The Odometry message does not give the twist velocity info and so estimation is done during navigation.
+3. Initial pose estimation is done with the reinitialize_global_localization 
+   but the observed output may still be off sometimes.
