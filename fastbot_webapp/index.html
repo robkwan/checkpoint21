@@ -33,7 +33,6 @@
             flex-direction: column;
         }
 
-        #map,
         #div3DViewer,
         #divCamera {
             width: 100%;
@@ -119,11 +118,7 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <h5>Map</h5>
-                <div id="map"></div>
-            </div>
-            <div class="col-md-12">
-                <h5>3D Model</h5>
+                <h5>3D Model in Map</h5>
                 <div id="div3DViewer"></div>
             </div>
             <div class="col-md-12">
@@ -133,9 +128,9 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <button class="btn btn-primary" @click="goToWaypoint(1)">Waypoint 1</button>
-                <button class="btn btn-primary" @click="goToWaypoint(2)">Waypoint 2</button>
-                <button class="btn btn-primary" @click="goToWaypoint(3)">Waypoint 3</button>
+                <button class="btn btn-primary" @click="goToWaypoint(1)">To Sofa</button>
+                <button class="btn btn-primary" @click="goToWaypoint(2)">To Kitchen</button>
+                <button class="btn btn-primary" @click="goToWaypoint(3)">To Living Room</button>
             </div>
         </div>
     </div>

@@ -125,7 +125,7 @@ var app = new Vue({
                 width: 400,
                 height: 300,
                 antialias: true,
-                fixedFrame: 'fastbot_1_odom'
+                fixedFrame: 'map' //'fastbot_1_odom'
             })
 
             // Add a grid.
@@ -153,7 +153,7 @@ var app = new Vue({
                 angularThres: 0.01,
                 transThres: 0.01,
                 rate: 10.0,
-                fixedFrame: 'fastbot_1_base_link'
+                fixedFrame: 'map' //'fastbot_1_base_link'
             })
 
             // Setup the URDF client.
@@ -293,14 +293,14 @@ var app = new Vue({
         goToWaypoint(waypoint) {
             let waypointPos = { x: 0, y: 0 }; // Define waypoints here
             switch (waypoint) {
-                case 1: waypointPos = { x: 1, y: 1 }; break;
-                case 2: waypointPos = { x: 2, y: 2 }; break;
-                case 3: waypointPos = { x: 3, y: 3 }; break;
+                case 1: waypointPos = { x: -2.82, y: 1.20 }; break;
+                case 2: waypointPos = { x: 2.16, y: 1.68 }; break;
+                case 3: waypointPos = { x: -0.76, y: -2.30 }; break;
             }
             let topic = new ROSLIB.Topic({
                 ros: this.ros,
-                name: '/fastbot/move_base_simple/goal',
-                messageType: 'geometry_msgs/PoseStamped'
+                name: '/goal_pose',
+                messageType: 'geometry_msgs/msg/PoseStamped'
             });
             let message = new ROSLIB.Message({
                 header: {
