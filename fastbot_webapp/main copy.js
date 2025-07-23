@@ -6,7 +6,7 @@ var app = new Vue({
         ros: null,
         logs: [],
         loading: false,
-        rosbridge_address: 'wss://i-0023b6c127254990a.robotigniteacademy.com/4813adec-a8c0-472c-abac-25b08d7665b0/rosbridge/',
+        rosbridge_address: 'wss://i-0db376d25bc33dd62.robotigniteacademy.com/99cc90d9-9b1d-498d-ad15-dadc4b0952ee/rosbridge/',
         port: '9090',
         // 3D stuff
         viewer: null,
@@ -47,9 +47,8 @@ var app = new Vue({
                 this.connected = true
                 console.log("connected state:", this.connected);
                 this.loading = false
-                //this.setupMap()
+                this.setupMap()
                 this.setup3DViewer()
-                this.setupMapIn3DViewer()
                 this.setupCamera()
                 this.pubInterval = setInterval(this.publish, 100)
                 this.subscribeToOdometry() 
@@ -100,24 +99,6 @@ var app = new Vue({
                 this.mapViewer.shift(this.mapGridClient.currentGrid.pose.position.x, this.mapGridClient.currentGrid.pose.position.y);
             });
         },
-        setupMapIn3DViewer() {
-            const gridClient = new ROS3D.OccupancyGridClient({
-                ros: this.ros,
-                rootObject: this.viewer.scene,  // ✅ Use 3D viewer's scene
-                continuous: true
-            });
-
-            //gridClient.on('change', () => {
-            //    this.viewer.scaleToDimensions(
-            //        gridClient.currentGrid.width,
-            //        gridClient.currentGrid.height
-            //    );
-            //    this.viewer.shift(
-            //        gridClient.currentGrid.pose.position.x,
-            //        gridClient.currentGrid.pose.position.y
-            //    );
-            //});
-        },
         setup3DViewer() {
             this.viewer = new ROS3D.Viewer({
                 background: '#cccccc',
@@ -135,18 +116,6 @@ var app = new Vue({
                 num_cells: 20
             }))
 
-            this.gridClient = new ROS3D.OccupancyGridClient({
-                ros: this.ros,
-                rootObject: this.viewer.scene,
-                continuous: true,
-            });
-
-            this.viewer.addObject(new ROS3D.Axes({
-                tfClient: this.tfClient,
-                frameId: 'fastbot_1_base_link',
-                size: 0.5
-            }));
-            
             // Setup a client to listen to TFs.
             this.tfClient = new ROSLIB.TFClient({
                 ros: this.ros,
@@ -205,30 +174,9 @@ var app = new Vue({
                 messageType: 'nav_msgs/Odometry'
             });
             topic.subscribe((message) => {
-                this.pose = message.pose.pose;
                 this.position = message.pose.pose.position;
                 this.currentSpeed = Math.sqrt(Math.pow(message.twist.twist.linear.x, 2) + Math.pow(message.twist.twist.linear.y, 2));
-            
-            // Update 3D model position based on odometry data
-            this.update3DModelPosition(this.pose);
-            
             });
-        },
-        update3DModelPosition(pose) {
-            // Ensure the model is updated with respect to the grid
-            const gridSize = 1; // Change this to match your grid size
-
-            if (this.urdfClient && this.urdfClient.rootObject) {
-                let model = this.urdfClient.rootObject; // Use the rootObject directly
-        
-                // Snap the position to the nearest grid point
-                model.position.x = Math.round(pose.position.x / gridSize) * gridSize;
-                model.position.y = Math.round(pose.position.y / gridSize) * gridSize;
-                model.position.z = pose.position.z; // Keep the z position as is if not affected by the grid
-        
-                // Set the orientation using quaternion
-                model.quaternion.set(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
-            }
         },
         startDrag() {
             this.dragging = true
@@ -258,28 +206,6 @@ var app = new Vue({
                 this.dragCircleStyle.left = `${left}px`
 
                 this.setJoystickVals()
-
-                // Optionally publish velocity commands
-                this.publish(); // Send velocity commands based on joystick input
-
-                // Define a speed factor based on your grid size
-                //const speedFactor = 0.1; // Adjust as needed for your grid scale
-
-                // Calculate new position based on joystick input
-                //let moveX = this.joystick.horizontal * speedFactor;
-                //let moveY = this.joystick.vertical * speedFactor;
-
-                // Update the model's position based on movement
-                //if (this.urdfClient && this.urdfClient.rootObject) {
-                //    let model = this.urdfClient.rootObject;
-                //    model.position.x += moveX;
-                //    model.position.y += moveY;
-
-                    // Optionally ensure the model stays within grid boundaries
-                //    model.position.x = Math.max(minX, Math.min(maxX, model.position.x));
-                //    model.position.y = Math.max(minY, Math.min(maxY, model.position.y));
-                //}
-
             }
         },
         setJoystickVals() {
