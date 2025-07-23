@@ -32,6 +32,7 @@ var app = new Vue({
         },
         // publisher
         pubInterval: null,
+        controller_status: '',
     },
     // helper methods to connect to ROS
     methods: {
@@ -53,6 +54,7 @@ var app = new Vue({
                 this.setupCamera()
                 this.pubInterval = setInterval(this.publish, 100)
                 this.subscribeToOdometry() 
+                this.subscribeToControllerStatus()
             }) 
             this.ros.on('error', (error) => {
                 console.log('Error connecting to ROSBridge:', error)
@@ -168,6 +170,10 @@ var app = new Vue({
                 rootObject: this.viewer.scene,
                 loader: ROS3D.COLLADA_LOADER_2
             })
+
+            this.viewer.camera.position.set(8, -12, 10);  // basic Z-height
+            this.viewer.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
         },
         unset3DViewer() {
             document.getElementById('div3DViewer').innerHTML = ''
@@ -313,7 +319,49 @@ var app = new Vue({
             });
             topic.publish(message);
         },
+        subscribeToControllerStatus() {
+            const transitionTopic = new ROSLIB.Topic({
+                ros: this.ros,
+                name: '/controller_server/transition_event',
+                messageType: 'lifecycle_msgs/msg/TransitionEvent'
+            });
 
+            transitionTopic.subscribe((msg) => {
+                const startState = msg.start_state.label;
+                const goalState = msg.goal_state.label;
+
+                const statusMsg = `Controller state changed from '${startState}' to '${goalState}'`;
+                console.log('[Transition]', statusMsg);
+                this.controller_status = statusMsg;
+
+                // Optional: update 'reached' flag heuristically
+                if (goalState === 'inactive') {
+                    this.reached = false;
+                } else if (goalState === 'finalized') {
+                    this.reached = true;
+                }
+            });
+
+            // Optional: also watch /rosout for logs if needed
+            const rosout = new ROSLIB.Topic({
+                ros: this.ros,
+                name: '/rosout',
+                messageType: 'rcl_interfaces/msg/Log'
+            });
+
+            rosout.subscribe((msg) => {
+                if (msg.name && msg.name.includes('controller_server')) {
+                    console.log('[ROSOUT][Controller]', msg.msg);
+                    this.controller_status = msg.msg;
+
+                    if (msg.msg.includes('Reached') || msg.msg.includes('SUCCEEDED')) {
+                        this.reached = true;
+                    } else if (msg.msg.includes('Aborted') || msg.msg.includes('FAILED')) {
+                        this.reached = false;
+                    }
+                }
+            });
+        }
     },
      mounted() {
         // page is ready

@@ -75,14 +75,17 @@
         <h3 class="text-center">Robot Control Interface</h3>
         <div class="row">
             <div class="col-md-4">
-                <h5>Connection Status</h5>
-                <p>Debug Connected State: {{ connected }}</p>
-                <p v-if="!connected" class="text-danger">Not connected!</p>
-                <p v-if="connected" class="text-success">Connected!</p>
-                <label>ROSBridge Address:</label>
-                <input type="text" v-model="rosbridge_address" class="form-control">
-                <button class="btn btn-success mt-2" @click="connect" v-if="!connected">Connect</button>
-                <button class="btn btn-danger mt-2" @click="disconnect" v-if="connected">Disconnect</button>
+                <div class="card">
+                    <h2 class="text-center">Connection Status</h2>
+                    <hr>
+                    <!--<p>Debug Connected State: {{ connected }}</p>-->
+                    <p v-if="!connected" class="text-danger">Not connected!</p>
+                    <p v-if="connected" class="text-success">Connected!</p>
+                    <label>ROSBridge Address:</label>
+                    <input type="text" v-model="rosbridge_address" class="form-control">
+                    <button class="btn btn-success mt-2" @click="connect" v-if="!connected">Connect</button>
+                    <button class="btn btn-danger mt-2" @click="disconnect" v-if="connected">Disconnect</button>
+                </div>
             </div>
             <div class="col-md-4">
                 <div class="card">
@@ -90,8 +93,7 @@
                         <h2 class="text-center">Joystick</h2>
                         <hr>
                         <p>Some actions for the robot</p>
-                        <div id="dragstartzone" @mousedown="startDrag" @mousemove="doDrag">
-                        </div>
+                        <div id="dragstartzone" @mousedown="startDrag" @mousemove="doDrag"></div>
                         <div id="dragCircle" :style="dragCircleStyle"></div>
                     </div>
                 </div>
@@ -99,38 +101,58 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="text-center">Joystick values</h2>
+                        <h2 class="text-center">Robot's Data</h2>
+                        <hr>
+                        <!--<h2 class="text-center">Joystick values</h2>
                         <hr />
                         <p>Vertical: {{ joystick.vertical.toFixed(3) }}</p>
                         <br />
-                        <p>Horizontal: {{ joystick.horizontal.toFixed(3) }}</p>
+                        <p>Horizontal: {{ joystick.horizontal.toFixed(3) }}</p>-->
+                        <h5>Current Speed</h5>
+                        <p>{{ currentSpeed }} m/s</p>
+                        <h5>Current Position</h5>
+                        <p>X: {{ position.x.toFixed(2) }}</p>
+                        <p>Y: {{ position.y.toFixed(2) }}</p>
+                        <p>Z: {{ position.z.toFixed(2) }}</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <!--<div class="col-md-4">
                 <h5>Current Speed</h5>
                 <p>{{ currentSpeed }} m/s</p>
                 <h5>Current Position</h5>
                 <p>X: {{ position.x.toFixed(2) }}</p>
                 <p>Y: {{ position.y.toFixed(2) }}</p>
                 <p>Z: {{ position.z.toFixed(2) }}</p>
-            </div>
+            </div>-->
         </div>
         <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <h5>3D Model in Map</h5>
                 <div id="div3DViewer"></div>
             </div>
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <h5>Camera View</h5>
                 <div id="divCamera"></div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <button class="btn btn-primary" @click="goToWaypoint(1)">To Sofa</button>
-                <button class="btn btn-primary" @click="goToWaypoint(2)">To Kitchen</button>
-                <button class="btn btn-primary" @click="goToWaypoint(3)">To Living Room</button>
+                <div class="card">
+                    <h2 class="text-center">Waypoint Navigation</h2>
+                    <hr>
+                    <p>{{ controller_status }}</p>
+                    <!--<button class="btn btn-primary" @click="goToWaypoint(1)">To Sofa</button>
+                    <button class="btn btn-primary" @click="goToWaypoint(2)">To Kitchen</button>
+                    <button class="btn btn-primary" @click="goToWaypoint(3)">To Living Room</button>-->
+
+                    <!-- FLEX ROW OF BUTTONS -->
+                    <div class="d-flex justify-content-center">
+                        <button class="btn btn-primary mx-1" @click="goToWaypoint(1)">To Sofa</button>
+                        <button class="btn btn-success mx-1" @click="goToWaypoint(2)">To Kitchen</button>
+                        <button class="btn btn-warning mx-1" @click="goToWaypoint(3)">To Living Room</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
